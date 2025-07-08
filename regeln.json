@@ -1,0 +1,18 @@
+{
+  "newsletter": {
+    "keywords": ["unsubscribe", "newsletter", "abbestellen"],
+    "label": "Newsletter"
+  },
+  "rechnung": {
+    "keywords": ["rechnung", "invoice", "zahlung"],
+    "label": "Rechnungen"
+  },
+  "termine": {
+    "keywords": ["termin", "meeting", "besprechung"],
+    "label": "Termine"
+  },
+  "persoenlich": {
+    "keywords": [],
+    "label": "Persoenlich"
+  }
+}

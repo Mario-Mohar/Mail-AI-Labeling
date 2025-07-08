@@ -1,0 +1,16 @@
+# Virtualenv
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.log
+
+# API Keys & sensible Daten
+credentials.json
+token.json
+.env
+
+# VS Code
+.vscode/
