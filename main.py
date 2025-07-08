@@ -22,6 +22,10 @@ def main():
     # ==== Gmail verbinden ====
     service = get_gmail_service()
 
+    # ==== Gmail Labels abrufen (für Gemini-Erkennung) ====
+    label_response = service.users().labels().list(userId='me').execute()
+    gmail_labels = [label['name'].lower() for label in label_response.get('labels', [])]
+
     # ==== E-Mails aus INBOX abrufen ====
     results = service.users().messages().list(
         userId='me',
@@ -57,7 +61,7 @@ def main():
             body = ""
 
         # ==== KI-Kategorisierung ====
-        kategorie = classify_email(subject, sender, body, regeln)
+        kategorie = classify_email(subject, sender, body, regeln, gmail_labels)
 
         if not kategorie:
             print(f"⚠️  Keine Kategorie erkannt für: {subject}")
@@ -82,7 +86,7 @@ def main():
                 f"\n[{timestamp}] Neue Kategorie von Gemini AI erkannt:\n"
                 f"  - Kategorie: {kategorie}\n"
                 f"  - Label: {labelname}\n"
-                f"  - Quelle: Gemini-Antwort\n"
+                f"  - Quelle: Gemini-Antwort + Gmail-Labels\n"
             )
             with open(LOG_DATEI, "a", encoding="utf-8") as f:
                 f.write(logtext)
