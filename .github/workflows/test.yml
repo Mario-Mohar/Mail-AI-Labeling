@@ -26,7 +26,19 @@ jobs:
         pip install pytest
 
     - name: Create fake .env for tests
-      run: echo "GEMINI_API_KEY=dummy_for_test" > .env
+      run: echo "GEMINI_API_KEY=placeholder_for_ci" > .env
+
+    - name: Create dummy credentials.json
+      run: |
+            cat <<EOF > credentials.json
+            {
+            "installed": {
+            "client_id": "dummy",
+            "client_secret": "dummy",
+            "redirect_uris": ["http://localhost"]
+            }
+            }
+            EOF
 
 
     - name: Add project root to PYTHONPATH
