@@ -5,12 +5,12 @@ from unittest.mock import MagicMock, patch
 
 from main import main
 
-@patch("google_auth_oauthlib.flow.InstalledAppFlow.run_local_server")
-@patch("gmail_utils.get_gmail_service")
-@patch("gmail_utils.get_or_create_label")
-@patch("gmail_utils.move_email_to_label")
 @patch("ai_classify.classify_email")
-def test_main_flow(mock_classify, mock_move, mock_label, mock_service, mock_run_server, tmp_path):
+@patch("gmail_utils.move_email_to_label")
+@patch("gmail_utils.get_or_create_label")
+@patch("gmail_utils.get_gmail_service")
+@patch("google_auth_oauthlib.flow.InstalledAppFlow.run_local_server")
+def test_main_flow(mock_run_server, mock_service, mock_label, mock_move, mock_classify, tmp_path):
     # Dummy Gmail-OAuth Flow unterdrücken
     mock_run_server.return_value = MagicMock()
 
