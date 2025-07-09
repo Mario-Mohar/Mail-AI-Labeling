@@ -1,6 +1,6 @@
 import builtins
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, mock_open
 from main import main
 
 @patch("ai_classify.classify_email")
@@ -39,21 +39,12 @@ def test_main_flow(mock_get_service, mock_get_label, mock_move_email, mock_class
     mock_classify.return_value = "rechnung"
     mock_get_label.return_value = "Label_1"
 
-    # Regeln-Datei simulieren
+    # === Regeln-Datei simulieren ===
     rules_content = {
         "rechnung": {"keywords": [], "label": "Rechnungen"}
     }
+    json_rules = json.dumps(rules_content, ensure_ascii=False)
 
-    open_orig = open
-
-    def open_patched(file, mode="r", *args, **kwargs):
-        if file == "regeln.json":
-            return MagicMock(spec=open_orig, read=lambda: json.dumps(rules_content), __enter__=lambda s: s, __exit__=lambda s, a, b, c: None, readlines=lambda: [])
-        return open_orig(file, mode, *args, **kwargs)
-
-    builtins.open = open_patched
-
-    try:
+    # Richtige Verwendung von mock_open für Dateiinhalt
+    with patch("builtins.open", mock_open(read_data=json_rules)):
         main()
-    finally:
-        builtins.open = open_orig
