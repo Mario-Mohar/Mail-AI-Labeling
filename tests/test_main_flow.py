@@ -2,7 +2,6 @@ import pytest
 import builtins
 import json
 from unittest.mock import MagicMock, patch
-
 from main import main
 
 @patch("ai_classify.classify_email")
@@ -12,7 +11,9 @@ from main import main
 @patch("google_auth_oauthlib.flow.InstalledAppFlow.run_local_server")
 def test_main_flow(mock_run_server, mock_service, mock_label, mock_move, mock_classify, tmp_path):
     # Dummy Gmail-OAuth Flow unterdrücken
-    mock_run_server.return_value = MagicMock()
+    dummy_creds = MagicMock()
+    dummy_creds.to_json.return_value = "{}"  # Verhindert TypeError beim write()
+    mock_run_server.return_value = dummy_creds
 
     # Dummy Regeln-Datei vorbereiten
     rules_path = tmp_path / "regeln.json"
@@ -25,7 +26,6 @@ def test_main_flow(mock_run_server, mock_service, mock_label, mock_move, mock_cl
         if file == "regeln.json":
             return open_orig(rules_path, mode, *args, **kwargs)
         return open_orig(file, mode, *args, **kwargs)
-
     builtins.open = open_patched
 
     # Dummy Gmail Nachrichten simulieren
