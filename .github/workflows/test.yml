@@ -11,39 +11,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📦 Checkout Repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: 🐍 Set up Python 3.12
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
 
-    - name: 📚 Install Dependencies
+    - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest
 
-    - name: 🔐 Create fake .env for tests
+    - name: Create fake .env for tests
       run: echo "GEMINI_API_KEY=placeholder_for_ci" > .env
 
-    - name: 🪪 Create dummy credentials.json
+    - name: Create dummy credentials.json
       run: |
         echo '{
           "installed": {
-            "client_id": "dummy",
+            "client_id": "dummy-client-id",
             "project_id": "dummy-project",
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_secret": "dummy",
+            "client_secret": "dummy-secret",
             "redirect_uris": ["http://localhost"]
           }
         }' > credentials.json
 
-    - name: 🛣 Add project root to PYTHONPATH
+    - name: Add project root to PYTHONPATH
       run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
-    - name: 🧪 Run Pytest
-      run: pytest tests/ --disable-warnings --tb=short --maxfail=1
+    - name: Run Pytest
+      run: pytest tests/ --disable-warnings
