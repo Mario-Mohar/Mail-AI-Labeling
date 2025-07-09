@@ -1,6 +1,6 @@
-import builtins
 import json
-from unittest.mock import MagicMock, patch, mock_open
+import builtins
+from unittest.mock import patch, MagicMock, mock_open
 from main import main
 
 @patch("ai_classify.classify_email")
@@ -11,7 +11,6 @@ def test_main_flow(mock_get_service, mock_get_label, mock_move_email, mock_class
     # === Fake Gmail Service ===
     fake_service = MagicMock()
 
-    # Labels simulieren
     fake_service.users.return_value.labels.return_value.list.return_value.execute.return_value = {
         "labels": [
             {"id": "Label_1", "name": "Rechnungen"},
@@ -19,19 +18,17 @@ def test_main_flow(mock_get_service, mock_get_label, mock_move_email, mock_class
         ]
     }
 
-    # Nachrichten simulieren
     fake_service.users.return_value.messages.return_value.list.return_value.execute.return_value = {
         "messages": [{"id": "123"}]
     }
 
-    # Nachrichtendetails simulieren
     fake_service.users.return_value.messages.return_value.get.return_value.execute.return_value = {
         "payload": {
             "headers": [
                 {"name": "Subject", "value": "Ihre Rechnung"},
                 {"name": "From", "value": "firma@example.com"},
             ],
-            "body": {"data": "SGVsdG8gd29ybGQ="}  # base64("Hello world")
+            "body": {"data": "SGVsdG8gd29ybGQ="}
         }
     }
 
@@ -39,12 +36,19 @@ def test_main_flow(mock_get_service, mock_get_label, mock_move_email, mock_class
     mock_classify.return_value = "rechnung"
     mock_get_label.return_value = "Label_1"
 
-    # === Regeln-Datei simulieren ===
+    # Nur `regeln.json` patchen – nicht global `open`
     rules_content = {
         "rechnung": {"keywords": [], "label": "Rechnungen"}
     }
     json_rules = json.dumps(rules_content, ensure_ascii=False)
 
-    # Richtige Verwendung von mock_open für Dateiinhalt
-    with patch("builtins.open", mock_open(read_data=json_rules)):
+    open_orig = open
+
+    def open_patched(file, mode="r", *args, **kwargs):
+        if file == "regeln.json":
+            m = mock_open(read_data=json_rules)
+            return m()
+        return open_orig(file, mode, *args, **kwargs)
+
+    with patch("builtins.open", side_effect=open_patched):
         main()
