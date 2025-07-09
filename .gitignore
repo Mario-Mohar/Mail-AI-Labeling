@@ -11,6 +11,7 @@ __pycache__/
 credentials.json
 token.json
 .env
+mail_log.txt
 
 # VS Code
 .vscode/
