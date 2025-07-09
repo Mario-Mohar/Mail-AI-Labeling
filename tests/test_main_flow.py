@@ -8,15 +8,18 @@ from main import main
 @patch("gmail_utils.move_email_to_label")
 @patch("gmail_utils.get_or_create_label")
 @patch("gmail_utils.get_gmail_service")
-@patch("google_auth_oauthlib.flow.InstalledAppFlow.run_local_server")
-def test_main_flow(mock_run_server, mock_get_service, mock_get_label, mock_move_email, mock_classify, tmp_path):
-    # Dummy Credentials simulieren
-    dummy_creds = MagicMock()
-    dummy_creds.to_json.return_value = "{}"
-    dummy_creds.universe_domain = "googleapis.com"  # Verhindert UniverseMismatchError
-    mock_run_server.return_value = dummy_creds
+@patch("google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file")
+def test_main_flow(mock_client_secrets, mock_get_service, mock_get_label, mock_move_email, mock_classify, tmp_path):
+    # === Dummy Credential Chain vollständig mocken ===
+    dummy_credentials = MagicMock()
+    dummy_credentials.to_json.return_value = "{}"
+    dummy_credentials.universe_domain = "googleapis.com"
 
-    # Gmail-Dienst komplett simulieren
+    dummy_flow = MagicMock()
+    dummy_flow.run_local_server.return_value = dummy_credentials
+    mock_client_secrets.return_value = dummy_flow
+
+    # === Gmail Service Mock ===
     mock_service = MagicMock()
     mock_get_service.return_value = mock_service
 
@@ -33,7 +36,7 @@ def test_main_flow(mock_run_server, mock_get_service, mock_get_label, mock_move_
         "messages": [{"id": "123"}]
     }
 
-    # E-Mail-Inhalt simulieren
+    # Inhalt der E-Mail simulieren
     mock_service.users.return_value.messages.return_value.get.return_value.execute.return_value = {
         "payload": {
             "headers": [
@@ -48,12 +51,12 @@ def test_main_flow(mock_run_server, mock_get_service, mock_get_label, mock_move_
     mock_classify.return_value = "rechnung"
     mock_get_label.return_value = "Label_1"
 
-    # Regeln-Datei erzeugen
+    # === Regeln-Datei vorbereiten ===
     rules_path = tmp_path / "regeln.json"
     rules = {"rechnung": {"keywords": [], "label": "Rechnungen"}}
     rules_path.write_text(json.dumps(rules, ensure_ascii=False), encoding="utf-8")
 
-    # open() patchen nur für regeln.json
+    # open() patchen – nur für regeln.json
     open_orig = open
     def open_patched(file, mode="r", *args, **kwargs):
         if file == "regeln.json":
@@ -62,7 +65,6 @@ def test_main_flow(mock_run_server, mock_get_service, mock_get_label, mock_move_
 
     builtins.open = open_patched
 
-    # Test ausführen
     try:
         main()
     finally:

@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout Repository
+    - name: 📦 Checkout Repository
       uses: actions/checkout@v4
 
-    - name: 🐍 Set up Python
+    - name: 🐍 Set up Python 3.12
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
 
-    - name: 📦 Install Dependencies
+    - name: 📚 Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
@@ -28,7 +28,7 @@ jobs:
     - name: 🔐 Create fake .env for tests
       run: echo "GEMINI_API_KEY=placeholder_for_ci" > .env
 
-    - name: 🧾 Create dummy credentials.json
+    - name: 🪪 Create dummy credentials.json
       run: |
         echo '{
           "installed": {
@@ -42,8 +42,8 @@ jobs:
           }
         }' > credentials.json
 
-    - name: 🧠 Add project root to PYTHONPATH
+    - name: 🛣 Add project root to PYTHONPATH
       run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
     - name: 🧪 Run Pytest
-      run: pytest tests/ --disable-warnings
+      run: pytest tests/ --disable-warnings --tb=short --maxfail=1
