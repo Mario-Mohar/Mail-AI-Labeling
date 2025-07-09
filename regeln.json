@@ -1,18 +1,50 @@
 {
   "newsletter": {
-    "keywords": ["unsubscribe", "newsletter", "abbestellen"],
+    "keywords": [
+      "unsubscribe",
+      "newsletter",
+      "abbestellen"
+    ],
     "label": "Newsletter"
   },
   "rechnung": {
-    "keywords": ["rechnung", "invoice", "zahlung"],
+    "keywords": [
+      "rechnung",
+      "invoice",
+      "zahlung"
+    ],
     "label": "Rechnungen"
   },
   "termine": {
-    "keywords": ["termin", "meeting", "besprechung"],
+    "keywords": [
+      "termin",
+      "meeting",
+      "besprechung"
+    ],
     "label": "Termine"
   },
   "persoenlich": {
     "keywords": [],
     "label": "Persoenlich"
+  },
+  "category_promotions": {
+    "keywords": [],
+    "label": "Category_promotions"
+  },
+  "category_updates": {
+    "keywords": [],
+    "label": "Category_updates"
+  },
+  "bestellungen": {
+    "keywords": [],
+    "label": "Bestellungen"
+  },
+  "rechnungen": {
+    "keywords": [],
+    "label": "Rechnungen"
+  },
+  "medium": {
+    "keywords": [],
+    "label": "Medium"
   }
 }
