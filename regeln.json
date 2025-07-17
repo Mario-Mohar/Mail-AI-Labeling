@@ -46,5 +46,33 @@
   "medium": {
     "keywords": [],
     "label": "Medium"
+  },
+  "wichtiges": {
+    "keywords": [],
+    "label": "Wichtiges"
+  },
+  "chat": {
+    "keywords": [],
+    "label": "Chat"
+  },
+  "category_social": {
+    "keywords": [],
+    "label": "Category_social"
+  },
+  "wichtiges/arbeiten": {
+    "keywords": [],
+    "label": "Wichtiges/arbeiten"
+  },
+  "registrierungen": {
+    "keywords": [],
+    "label": "Registrierungen"
+  },
+  "fußball": {
+    "keywords": [],
+    "label": "Fußball"
+  },
+  "sonstiges": {
+    "keywords": [],
+    "label": "Sonstiges"
   }
 }
