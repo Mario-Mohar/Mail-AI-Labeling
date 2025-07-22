@@ -15,7 +15,7 @@ class GeminiClassifier:
         if not self._api_key:
             raise ValueError("❌ Gemini API Key fehlt. Bitte .env Datei erstellen oder setzen.")
         genai.configure(api_key=self._api_key)
-        self._model = genai.GenerativeModel("models/gemini-2.5-flash")
+        self._model = genai.GenerativeModel("models/gemini-1.5-pro")
 
     def classify(self, subject, sender, body, regeln, gmail_labels=None):
         """
