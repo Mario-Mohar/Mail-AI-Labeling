@@ -4,7 +4,7 @@ import email
 import datetime
 import requests
 import logging
-from gmail_utils import get_gmail_service, get_or_create_label, move_email_to_label
+from gmail_utils import get_gmail_service, get_or_create_label, move_email_to_label, get_all_labels, get_emails_for_label
 from ai_classify import classify_email
 
 # ==== Einstellungen ====
@@ -126,7 +126,7 @@ def logge_neue_kategorie(kategorie, labelname):
     logging.info(logtext.strip())
 
 
-def verarbeite_email(msg, service, regeln, gmail_labels):
+def verarbeite_email(msg, service, regeln, gmail_labels, trainingsdaten=None):
     """Verarbeitet eine einzelne E-Mail: Klassifizierung, Label, ggf. neue Regel, Verschieben, Abmelden."""
     msg_id = msg['id']
     full_msg = service.users().messages().get(userId='me', id=msg_id, format='full').execute()
@@ -136,7 +136,7 @@ def verarbeite_email(msg, service, regeln, gmail_labels):
     body = get_email_body(full_msg)
 
     # ==== KI-Kategorisierung & Newsletter-Check ====
-    result = classify_email(subject, sender, body, regeln, gmail_labels)
+    result = classify_email(subject, sender, body, regeln, gmail_labels, trainingsdaten)
     kategorie = result.get("kategorie")
     ist_newsletter = result.get("ist_newsletter", False)
     ist_unbezahlt = result.get("ist_unbezahlt", False)
@@ -173,15 +173,46 @@ def verarbeite_email(msg, service, regeln, gmail_labels):
         abmelden_via_list_unsubscribe(list_unsubscribe, subject)
 
 
+def sammle_label_trainingsdaten(service, max_emails_per_label=50):
+    """Durchsucht alle Labels und sammelt Betreff, Absender, Body der enthaltenen E-Mails als Trainingsdaten."""
+    label_dict = get_all_labels(service)
+    trainingsdaten = []
+    for label_id, label_name in label_dict.items():
+        if label_name.lower() in ["inbox", "spam", "papierkorb", "trash", "sent", "gesendet"]:
+            continue  # Systemordner überspringen
+        messages = get_emails_for_label(service, label_id, max_results=max_emails_per_label)
+        for msg in messages:
+            msg_id = msg['id']
+            try:
+                full_msg = service.users().messages().get(userId='me', id=msg_id, format='full').execute()
+                headers = full_msg['payload']['headers']
+                subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '(Kein Betreff)')
+                sender = next((h['value'] for h in headers if h['name'] == 'From'), '')
+                body = get_email_body(full_msg)
+                trainingsdaten.append({
+                    "label": label_name,
+                    "subject": subject,
+                    "sender": sender,
+                    "body": body
+                })
+            except Exception as e:
+                logging.warning(f"Fehler beim Einlesen einer E-Mail aus Label '{label_name}': {e}")
+    logging.info(f"Trainingsdaten aus {len(label_dict)} Labels gesammelt. Gesamt: {len(trainingsdaten)} E-Mails.")
+    return trainingsdaten
+
+
 def main():
-    """Hauptfunktion: Lädt Regeln, verbindet Gmail, verarbeitet alle ungelesenen E-Mails."""
+    """Hauptfunktion: Lerne aus bestehenden Label-Inhalten, dann verarbeite neue ungelesene E-Mails."""
     regeln = lade_regeln()
     service = get_gmail_service()
     gmail_labels = hole_gmail_labels(service)
+    # Schritt 1: Bestehende Label-Inhalte einlesen und als Trainingsdaten sammeln
+    trainingsdaten = sammle_label_trainingsdaten(service, max_emails_per_label=50)
+    # Schritt 2: Neue ungelesene E-Mails wie bisher verarbeiten
     messages = hole_ungelesene_emails(service)
     logging.info(f"📬 {len(messages)} neue ungelesene E-Mails gefunden.")
     for msg in messages:
-        verarbeite_email(msg, service, regeln, gmail_labels)
+        verarbeite_email(msg, service, regeln, gmail_labels, trainingsdaten)
 
 
 if __name__ == "__main__":

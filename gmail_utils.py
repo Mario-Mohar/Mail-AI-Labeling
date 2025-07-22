@@ -41,3 +41,18 @@ def move_email_to_label(service, message_id, label_id):
             'removeLabelIds': ['INBOX']
         }
     ).execute()
+
+def get_all_labels(service):
+    """Gibt alle Labels als Dict (id->name) zurück."""
+    labels = service.users().labels().list(userId='me').execute()
+    return {label['id']: label['name'] for label in labels['labels']}
+
+
+def get_emails_for_label(service, label_id, max_results=100):
+    """Holt bis zu max_results E-Mails für ein bestimmtes Label."""
+    results = service.users().messages().list(
+        userId='me',
+        labelIds=[label_id],
+        maxResults=max_results
+    ).execute()
+    return results.get('messages', [])

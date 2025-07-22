@@ -38,7 +38,13 @@
     "label": "Updates"
   },
   "bestellungen": {
-    "keywords": ["bestellung", "order", "kauf", "purchase", "order confirmation", "bestellbestätigung", "order confirmation", "order details", "order summary"],
+    "keywords": [
+      "bestellung", "bestellbestätigung", "order", "kauf", "purchase", "order confirmation", "order details", "order summary",
+      "ihre bestellung", "versandbestätigung", "lieferung", "tracking", "sendungsverfolgung", "rechnung zu ihrer bestellung",
+      "wir haben ihre bestellung erhalten", "warenkorb", "artikel wurde versendet", "zahlung erhalten", "paypal", "amazon", "ebay",
+      "shop", "online-shop", "bestellnummer", "auftragsbestätigung", "versandinfo", "paket", "sendung", "shipped", "dispatched",
+      "delivery", "invoice for your order"
+    ],
     "label": "Bestellungen"
   },
   "medium": {
