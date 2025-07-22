@@ -11,7 +11,13 @@
     "keywords": [
       "rechnung",
       "invoice",
-      "zahlung"
+      "zahlung",
+      "payment",
+      "zahlungserinnerung",
+      "payment reminder",
+      "rechnungserinnerung",
+      "invoice reminder",
+      "rechnungskorrektur"
     ],
     "label": "Rechnungen"
   },
@@ -27,48 +33,37 @@
     "keywords": [],
     "label": "Persoenlich"
   },
-  "category_promotions": {
-    "keywords": [],
-    "label": "Category_promotions"
-  },
-  "category_updates": {
-    "keywords": [],
-    "label": "Category_updates"
+  "updates": {
+    "keywords": ["update", "neuigkeiten", "news", "aktualisierung", "version", "release", "upgrade"],
+    "label": "Updates"
   },
   "bestellungen": {
-    "keywords": [],
+    "keywords": ["bestellung", "order", "kauf", "purchase", "order confirmation", "bestellbestätigung", "order confirmation", "order details", "order summary"],
     "label": "Bestellungen"
   },
-  "rechnungen": {
-    "keywords": [],
-    "label": "Rechnungen"
-  },
   "medium": {
-    "keywords": [],
+    "keywords": ["medium", "medium.com", "artikel", "article", "blog"],
     "label": "Medium"
   },
   "wichtiges": {
-    "keywords": [],
+    "keywords": ["wichtig", "important", "urgent", "dringend", "notwendig", "necessary"],
     "label": "Wichtiges"
   },
   "chat": {
-    "keywords": [],
+    "keywords": ["chat", "chatbot", "messenger", "messaging", "conversation", "kommunikation"],
     "label": "Chat"
   },
-  "category_social": {
-    "keywords": [],
-    "label": "Category_social"
-  },
   "wichtiges/arbeiten": {
-    "keywords": [],
+    "keywords": ["arbeiten", "arbeit", "work", "job", "task", "aufgabe", "projekt", "project", "team", "collaboration", "zusammenarbeit", "collaborate", "arbeitspaket", "work package"],
     "label": "Wichtiges/arbeiten"
   },
   "registrierungen": {
-    "keywords": [],
+    "keywords": ["registrierung", "registration", "anmeldung", "signup", "sign up", "account creation", "account registration", "user registration", "user signup",
+      "user sign up", "user account", "user profile", "user registration confirmation", "user signup confirmation"],
     "label": "Registrierungen"
   },
   "fußball": {
-    "keywords": [],
+    "keywords": ["fussball", "football", "soccer", "spiel", "match", "game", "liga", "league", "team", "verein", "club", "öfb", "kfv", "fussball online"],
     "label": "Fußball"
   },
   "sonstiges": {

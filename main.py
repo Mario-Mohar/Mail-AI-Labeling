@@ -3,6 +3,7 @@ import base64
 import email
 import datetime
 import requests
+import logging
 from gmail_utils import get_gmail_service, get_or_create_label, move_email_to_label
 from ai_classify import classify_email
 
@@ -13,6 +14,8 @@ MAX_EMAILS = 50  # Begrenzung zur Sicherheit
 UNSUBSCRIBE_LOG = "unsubscribe_log.txt"
 
 KATEGORIEN = ["rechnung", "fußball", "newsletter", "spam", "privat", "arbeit", "werbung", "sonstiges"]
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 
 def log_unsubscribe_link(subject, url):
@@ -77,94 +80,108 @@ def abmelden_via_list_unsubscribe(header_value, subject):
     return False
 
 
-def main():
-    # ==== Regeln laden ====
+def lade_regeln():
+    """Lädt die Regeln aus der Datei oder gibt ein leeres Dict zurück."""
     try:
         with open(REGELN_DATEI, "r", encoding="utf-8") as f:
-            regeln = json.load(f)
+            return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        regeln = {}
+        logging.warning("Regeln konnten nicht geladen werden, leeres Dict wird verwendet.")
+        return {}
 
-    # ==== Gmail verbinden ====
-    service = get_gmail_service()
 
-    # ==== Gmail Labels abrufen (für Gemini-Erkennung) ====
+def speichere_regeln(regeln):
+    """Speichert die Regeln in die Datei."""
+    with open(REGELN_DATEI, "w", encoding="utf-8") as f:
+        json.dump(regeln, f, indent=2, ensure_ascii=False)
+
+
+def hole_gmail_labels(service):
+    """Holt alle Gmail-Labels als Liste (kleingeschrieben)."""
     label_response = service.users().labels().list(userId='me').execute()
-    gmail_labels = [label['name'].lower() for label in label_response.get('labels', [])]
+    return [label['name'].lower() for label in label_response.get('labels', [])]
 
-    # ==== E-Mails aus INBOX abrufen ====
+
+def hole_ungelesene_emails(service):
+    """Holt ungelesene E-Mails aus der INBOX (max. MAX_EMAILS)."""
     results = service.users().messages().list(
         userId='me',
         labelIds=['INBOX'],
         q="is:unread"
     ).execute()
+    return results.get('messages', [])[:MAX_EMAILS]
 
-    messages = results.get('messages', [])[:MAX_EMAILS]
-    print(f"📬 {len(messages)} neue ungelesene E-Mails gefunden.")
 
-    # ==== Verarbeiten ====
+def logge_neue_kategorie(kategorie, labelname):
+    """Loggt das Anlegen einer neuen Kategorie."""
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    logtext = (
+        f"\n[{timestamp}] Neue Kategorie von Gemini AI erkannt:\n"
+        f"  - Kategorie: {kategorie}\n"
+        f"  - Label: {labelname}\n"
+        f"  - Quelle: Gemini-Antwort + Gmail-Labels\n"
+    )
+    with open(LOG_DATEI, "a", encoding="utf-8") as f:
+        f.write(logtext)
+    logging.info(logtext.strip())
+
+
+def verarbeite_email(msg, service, regeln, gmail_labels):
+    """Verarbeitet eine einzelne E-Mail: Klassifizierung, Label, ggf. neue Regel, Verschieben, Abmelden."""
+    msg_id = msg['id']
+    full_msg = service.users().messages().get(userId='me', id=msg_id, format='full').execute()
+    headers = full_msg['payload']['headers']
+    subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '(Kein Betreff)')
+    sender = next((h['value'] for h in headers if h['name'] == 'From'), '')
+    body = get_email_body(full_msg)
+
+    # ==== KI-Kategorisierung & Newsletter-Check ====
+    result = classify_email(subject, sender, body, regeln, gmail_labels)
+    kategorie = result.get("kategorie")
+    ist_newsletter = result.get("ist_newsletter", False)
+    ist_unbezahlt = result.get("ist_unbezahlt", False)
+    unsubscribe_url = result.get("unsubscribe_url")
+
+    # Kategorientest
+    if kategorie not in KATEGORIEN:
+        kategorie = "sonstiges"
+
+    if not kategorie:
+        logging.warning(f"Keine Kategorie erkannt für: {subject}")
+        return
+
+    # ==== Regel prüfen oder neu anlegen ====
+    if kategorie not in regeln:
+        labelname = kategorie.capitalize()
+        regeln[kategorie] = {
+            "keywords": [],
+            "label": labelname
+        }
+        speichere_regeln(regeln)
+        logge_neue_kategorie(kategorie, labelname)
+
+    # ==== Gmail Label ID holen oder erstellen ====
+    label_id = get_or_create_label(service, regeln[kategorie]["label"])
+
+    # ==== E-Mail verschieben ====
+    move_email_to_label(service, msg_id, label_id)
+    logging.info(f"E-Mail '{subject}' wurde als '{kategorie}' klassifiziert und verschoben.")
+
+    # ==== Automatische Newsletter-Abmeldung über List-Unsubscribe-Header ====
+    list_unsubscribe = extract_list_unsubscribe(headers)
+    if ist_newsletter and ist_unbezahlt and list_unsubscribe:
+        abmelden_via_list_unsubscribe(list_unsubscribe, subject)
+
+
+def main():
+    """Hauptfunktion: Lädt Regeln, verbindet Gmail, verarbeitet alle ungelesenen E-Mails."""
+    regeln = lade_regeln()
+    service = get_gmail_service()
+    gmail_labels = hole_gmail_labels(service)
+    messages = hole_ungelesene_emails(service)
+    logging.info(f"📬 {len(messages)} neue ungelesene E-Mails gefunden.")
     for msg in messages:
-        msg_id = msg['id']
-        full_msg = service.users().messages().get(userId='me', id=msg_id, format='full').execute()
-        headers = full_msg['payload']['headers']
-
-        subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '(Kein Betreff)')
-        sender = next((h['value'] for h in headers if h['name'] == 'From'), '')
-
-        body = get_email_body(full_msg)
-
-        # ==== KI-Kategorisierung & Newsletter-Check ====
-        result = classify_email(subject, sender, body, regeln, gmail_labels)
-        if not result:
-            kategorie = None
-            ist_newsletter = False
-            ist_unbezahlt = False
-            unsubscribe_url = None
-        else:
-            kategorie = result[0]
-            ist_newsletter = result[1]
-            ist_unbezahlt = result[2]
-            unsubscribe_url = result[3]
-
-        # Kategorientest
-        if kategorie not in KATEGORIEN:
-            kategorie = "sonstiges"
-
-        if not kategorie:
-            print(f"⚠️  Keine Kategorie erkannt für: {subject}")
-            continue
-
-        # ==== Regel prüfen oder neu anlegen ====
-        if kategorie not in regeln:
-            labelname = kategorie.capitalize()
-            regeln[kategorie] = {
-                "keywords": [],
-                "label": labelname
-            }
-            with open(REGELN_DATEI, "w", encoding="utf-8") as f:
-                json.dump(regeln, f, indent=2, ensure_ascii=False)
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            logtext = (
-                f"\n[{timestamp}] Neue Kategorie von Gemini AI erkannt:\n"
-                f"  - Kategorie: {kategorie}\n"
-                f"  - Label: {labelname}\n"
-                f"  - Quelle: Gemini-Antwort + Gmail-Labels\n"
-            )
-            with open(LOG_DATEI, "a", encoding="utf-8") as f:
-                f.write(logtext)
-            print(logtext.strip())
-
-        # ==== Gmail Label ID holen oder erstellen ====
-        label_id = get_or_create_label(service, regeln[kategorie]["label"])
-
-        # ==== E-Mail verschieben ====
-        move_email_to_label(service, msg_id, label_id)
-        print(f"✅ E-Mail '{subject}' wurde als '{kategorie}' klassifiziert und verschoben.\n")
-
-        # ==== Automatische Newsletter-Abmeldung über List-Unsubscribe-Header ====
-        list_unsubscribe = extract_list_unsubscribe(headers)
-        if ist_newsletter and ist_unbezahlt and list_unsubscribe:
-            abmelden_via_list_unsubscribe(list_unsubscribe, subject)
+        verarbeite_email(msg, service, regeln, gmail_labels)
 
 
 if __name__ == "__main__":
