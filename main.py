@@ -13,7 +13,6 @@ LOG_DATEI = "mail_log.txt"
 MAX_EMAILS = 50  # Begrenzung zur Sicherheit
 UNSUBSCRIBE_LOG = "unsubscribe_log.txt"
 
-KATEGORIEN = ["rechnung", "fußball", "newsletter", "spam", "privat", "arbeit", "werbung", "sonstiges"]
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -142,13 +141,22 @@ def verarbeite_email(msg, service, regeln, gmail_labels, trainingsdaten=None):
     ist_unbezahlt = result.get("ist_unbezahlt", False)
     unsubscribe_url = result.get("unsubscribe_url")
 
-    # Kategorientest
-    if kategorie not in KATEGORIEN:
-        kategorie = "sonstiges"
-
+    # Dynamische Kategorien aus Regeln
+    kategorien_regeln = list(regeln.keys())
+    kategorien_normalisiert = [k.lower().strip() for k in kategorien_regeln]
     if not kategorie:
         logging.warning(f"Keine Kategorie erkannt für: {subject}")
         return
+    if kategorie.lower().strip() not in kategorien_normalisiert:
+        # Neue Kategorie automatisch als Regel anlegen
+        labelname = kategorie.capitalize()
+        regeln[kategorie] = {
+            "keywords": [],
+            "label": labelname
+        }
+        speichere_regeln(regeln)
+        logge_neue_kategorie(kategorie, labelname)
+        logging.info(f"Neue Kategorie '{kategorie}' wurde zu den Regeln hinzugefügt.")
 
     # ==== Regel prüfen oder neu anlegen ====
     if kategorie not in regeln:
