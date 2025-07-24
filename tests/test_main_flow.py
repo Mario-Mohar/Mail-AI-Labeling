@@ -33,7 +33,12 @@ def test_main_flow(mock_get_service, mock_get_label, mock_move_email, mock_class
     }
 
     mock_get_service.return_value = fake_service
-    mock_classify.return_value = "rechnung"
+    mock_classify.return_value = {
+        "kategorie": "rechnung",
+        "ist_newsletter": False,
+        "ist_unbezahlt": False,
+        "unsubscribe_url": None
+    }
     mock_get_label.return_value = "Label_1"
 
     # Nur `regeln.json` patchen – nicht global `open`

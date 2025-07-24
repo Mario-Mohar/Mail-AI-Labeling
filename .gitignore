@@ -12,6 +12,7 @@ credentials.json
 token.json
 .env
 mail_log.txt
+unsubscribe.txt
 
 # VS Code
 .vscode/
