@@ -18,7 +18,7 @@ class GeminiClassifier:
         genai.configure(api_key=self._api_key)
         self._model = genai.GenerativeModel("models/gemini-1.5-pro")
 
-    def classify(self, subject, sender, body, regeln, gmail_labels=None, trainingsdaten=None):
+    def classify(self, subject: str, sender: str, body: str, regeln: dict, gmail_labels: list[str] | None = None, trainingsdaten: list[dict] | None = None) -> dict:
         """
         Klassifiziert eine E-Mail mithilfe von Gemini AI, optional mit Trainingsdaten.
         :return: Dict mit Schlüsseln: kategorie, ist_newsletter, ist_unbezahlt, unsubscribe_url
@@ -100,7 +100,7 @@ Wenn keine passende Kategorie vorhanden ist, gib "unbekannt" zurück.
 # Singleton-Instanz für Modulgebrauch
 _classifier_instance = None
 
-def classify_email(subject, sender, body, regeln, gmail_labels=None, trainingsdaten=None):
+def classify_email(subject: str, sender: str, body: str, regeln: dict, gmail_labels: list[str] | None = None, trainingsdaten: list[dict] | None = None) -> dict:
     """Wrapper für die GeminiClassifier-Klasse, um Kompatibilität zu wahren."""
     global _classifier_instance
     if _classifier_instance is None:

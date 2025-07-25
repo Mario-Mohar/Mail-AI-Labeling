@@ -5,7 +5,7 @@ import os
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
-def get_gmail_service():
+def get_gmail_service() -> build:
     creds = None
     if os.path.exists('token.json'):
         try:
@@ -19,7 +19,7 @@ def get_gmail_service():
             token.write(creds.to_json())
     return build('gmail', 'v1', credentials=creds)
 
-def get_or_create_label(service, label_name):
+def get_or_create_label(service, label_name: str) -> str:
     labels = service.users().labels().list(userId='me').execute()
     for label in labels['labels']:
         if label['name'].lower() == label_name.lower():
@@ -32,7 +32,7 @@ def get_or_create_label(service, label_name):
     created = service.users().labels().create(userId='me', body=new_label).execute()
     return created['id']
 
-def move_email_to_label(service, message_id, label_id):
+def move_email_to_label(service, message_id: str, label_id: str):
     service.users().messages().modify(
         userId='me',
         id=message_id,
@@ -42,13 +42,13 @@ def move_email_to_label(service, message_id, label_id):
         }
     ).execute()
 
-def get_all_labels(service):
+def get_all_labels(service) -> dict[str, str]:
     """Gibt alle Labels als Dict (id->name) zurück."""
     labels = service.users().labels().list(userId='me').execute()
     return {label['id']: label['name'] for label in labels['labels']}
 
 
-def get_emails_for_label(service, label_id, max_results=100):
+def get_emails_for_label(service, label_id: str, max_results: int = 100) -> list[dict]:
     """Holt bis zu max_results E-Mails für ein bestimmtes Label."""
     results = service.users().messages().list(
         userId='me',

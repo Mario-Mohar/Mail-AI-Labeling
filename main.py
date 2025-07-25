@@ -4,95 +4,22 @@ import email
 import datetime
 import requests
 import logging
+import os
+from dotenv import load_dotenv
 from gmail_utils import get_gmail_service, get_or_create_label, move_email_to_label, get_all_labels, get_emails_for_label
 from ai_classify import classify_email
+from utils import get_email_body, extract_list_unsubscribe, abmelden_via_list_unsubscribe, log_unsubscribe_link, logge_neue_kategorie
+from rules_utils import lade_regeln, speichere_regeln
 
 # ==== Einstellungen ====
-REGELN_DATEI = "regeln.json"
-LOG_DATEI = "mail_log.txt"
-MAX_EMAILS = 50  # Begrenzung zur Sicherheit
-UNSUBSCRIBE_LOG = "unsubscribe_log.txt"
+load_dotenv()
+REGELN_DATEI = os.getenv("REGELN_DATEI", "regeln.json")
+LOG_DATEI = os.getenv("LOG_DATEI", "mail_log.txt")
+MAX_EMAILS = int(os.getenv("MAX_EMAILS", 50))
+UNSUBSCRIBE_LOG = os.getenv("UNSUBSCRIBE_LOG", "unsubscribe_log.txt")
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
-
-def log_unsubscribe_link(subject, url):
-    with open(UNSUBSCRIBE_LOG, "a", encoding="utf-8") as f:
-        f.write(f"{datetime.datetime.now()} | {subject} | {url}\n")
-
-
-def is_valid_url(url):
-    return isinstance(url, str) and url.startswith("http")
-
-
-def get_email_body(full_msg):
-    body_data = ""
-    # Suche zuerst nach text/plain
-    if 'parts' in full_msg['payload']:
-        for part in full_msg['payload']['parts']:
-            if part['mimeType'] == 'text/plain' and 'data' in part['body']:
-                body_data = part['body']['data']
-                break
-        # Wenn kein text/plain gefunden, nimm text/html
-        if not body_data:
-            for part in full_msg['payload']['parts']:
-                if part['mimeType'] == 'text/html' and 'data' in part['body']:
-                    body_data = part['body']['data']
-                    break
-    elif 'body' in full_msg['payload'] and 'data' in full_msg['payload']['body']:
-        body_data = full_msg['payload']['body']['data']
-    try:
-        return base64.urlsafe_b64decode(body_data).decode('utf-8', errors='ignore')
-    except Exception:
-        return ""
-
-
-def extract_list_unsubscribe(headers):
-    for h in headers:
-        if h['name'].lower() == 'list-unsubscribe':
-            return h['value']
-    return None
-
-
-def abmelden_via_list_unsubscribe(header_value, subject):
-    import re
-    # Suche nach URL im Header
-    urls = re.findall(r'<(http[^>]+)>', header_value)
-    if urls:
-        unsubscribe_url = urls[0]
-        print(f"Automatische Abmeldung über List-Unsubscribe-URL: {unsubscribe_url}")
-        log_unsubscribe_link(subject, unsubscribe_url)
-        try:
-            response = requests.get(unsubscribe_url, timeout=10)
-            print("Abmeldung durchgeführt, Status:", response.status_code)
-        except Exception as e:
-            print("Fehler bei der Abmeldung:", e)
-        return True
-    # Optional: Mailto-Adresse extrahieren und E-Mail senden
-    mailtos = re.findall(r'<mailto:([^>]+)>', header_value)
-    if mailtos:
-        print(f"Abmeldung per E-Mail an: {mailtos[0]}")
-        log_unsubscribe_link(subject, f"mailto:{mailtos[0]}")
-        # Hier könntest du automatisiert eine E-Mail senden (z.B. mit smtplib)
-        return True
-    return False
-
-
-def lade_regeln():
-    """Lädt die Regeln aus der Datei oder gibt ein leeres Dict zurück."""
-    try:
-        with open(REGELN_DATEI, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        logging.warning("Regeln konnten nicht geladen werden, leeres Dict wird verwendet.")
-        return {}
-
-
-def speichere_regeln(regeln):
-    """Speichert die Regeln in die Datei."""
-    with open(REGELN_DATEI, "w", encoding="utf-8") as f:
-        json.dump(regeln, f, indent=2, ensure_ascii=False)
 
 
 def hole_gmail_labels(service):
@@ -109,20 +36,6 @@ def hole_ungelesene_emails(service):
         q="is:unread"
     ).execute()
     return results.get('messages', [])[:MAX_EMAILS]
-
-
-def logge_neue_kategorie(kategorie, labelname):
-    """Loggt das Anlegen einer neuen Kategorie."""
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    logtext = (
-        f"\n[{timestamp}] Neue Kategorie von Gemini AI erkannt:\n"
-        f"  - Kategorie: {kategorie}\n"
-        f"  - Label: {labelname}\n"
-        f"  - Quelle: Gemini-Antwort + Gmail-Labels\n"
-    )
-    with open(LOG_DATEI, "a", encoding="utf-8") as f:
-        f.write(logtext)
-    logging.info(logtext.strip())
 
 
 def verarbeite_email(msg, service, regeln, gmail_labels, trainingsdaten=None):
@@ -211,7 +124,7 @@ def sammle_label_trainingsdaten(service, max_emails_per_label=50):
 
 def main():
     """Hauptfunktion: Lerne aus bestehenden Label-Inhalten, dann verarbeite neue ungelesene E-Mails."""
-    regeln = lade_regeln()
+    regeln = lade_regeln(REGELN_DATEI)
     service = get_gmail_service()
     gmail_labels = hole_gmail_labels(service)
     # Schritt 1: Bestehende Label-Inhalte einlesen und als Trainingsdaten sammeln
