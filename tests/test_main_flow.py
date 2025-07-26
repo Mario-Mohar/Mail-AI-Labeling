@@ -1,3 +1,4 @@
+import os
 import json
 import builtins
 from unittest.mock import patch, MagicMock, mock_open
@@ -7,7 +8,12 @@ from main import main
 @patch("gmail_utils.move_email_to_label")
 @patch("gmail_utils.get_or_create_label")
 @patch("gmail_utils.get_gmail_service")
-def test_main_flow(mock_get_service, mock_get_label, mock_move_email, mock_classify):
+@patch("utils.get_email_body", return_value="Test Body")
+@patch("rules_utils.lade_regeln")
+@patch("rules_utils.speichere_regeln")
+@patch("utils.log_unsubscribe_link")
+@patch("utils.logge_neue_kategorie")
+def test_main_flow(mock_log_kat, mock_log_unsub, mock_save_rules, mock_load_rules, mock_get_body, mock_get_service, mock_get_label, mock_move_email, mock_classify):
     # === Fake Gmail Service ===
     fake_service = MagicMock()
 
@@ -41,19 +47,12 @@ def test_main_flow(mock_get_service, mock_get_label, mock_move_email, mock_class
     }
     mock_get_label.return_value = "Label_1"
 
-    # Nur `regeln.json` patchen – nicht global `open`
+    # Regeln laden mocken
     rules_content = {
         "rechnung": {"keywords": [], "label": "Rechnungen"}
     }
-    json_rules = json.dumps(rules_content, ensure_ascii=False)
+    mock_load_rules.return_value = rules_content
 
-    open_orig = open
-
-    def open_patched(file, mode="r", *args, **kwargs):
-        if file == "regeln.json":
-            m = mock_open(read_data=json_rules)
-            return m()
-        return open_orig(file, mode, *args, **kwargs)
-
-    with patch("builtins.open", side_effect=open_patched):
+    # Umgebungsvariablen patchen
+    with patch.dict(os.environ, {"REGELN_DATEI": "regeln.json", "LOG_DATEI": "mail_log.txt", "MAX_EMAILS": "50", "UNSUBSCRIBE_LOG": "unsubscribe_log.txt"}):
         main()

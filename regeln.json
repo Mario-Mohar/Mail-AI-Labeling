@@ -34,40 +34,149 @@
     "label": "Persoenlich"
   },
   "updates": {
-    "keywords": ["update", "neuigkeiten", "news", "aktualisierung", "version", "release", "upgrade"],
+    "keywords": [
+      "update",
+      "neuigkeiten",
+      "news",
+      "aktualisierung",
+      "version",
+      "release",
+      "upgrade"
+    ],
     "label": "Updates"
   },
   "bestellungen": {
-    "keywords": ["bestellung", "order", "kauf", "purchase", "order confirmation", "bestellbestätigung", "order confirmation", "order details", "order summary"],
+    "keywords": [
+      "bestellung",
+      "bestellbestätigung",
+      "order",
+      "kauf",
+      "purchase",
+      "order confirmation",
+      "order details",
+      "order summary",
+      "ihre bestellung",
+      "versandbestätigung",
+      "lieferung",
+      "tracking",
+      "sendungsverfolgung",
+      "rechnung zu ihrer bestellung",
+      "wir haben ihre bestellung erhalten",
+      "warenkorb",
+      "artikel wurde versendet",
+      "zahlung erhalten",
+      "paypal",
+      "amazon",
+      "ebay",
+      "shop",
+      "online-shop",
+      "bestellnummer",
+      "auftragsbestätigung",
+      "versandinfo",
+      "paket",
+      "sendung",
+      "shipped",
+      "dispatched",
+      "delivery",
+      "invoice for your order"
+    ],
     "label": "Bestellungen"
   },
   "medium": {
-    "keywords": ["medium", "medium.com", "artikel", "article", "blog"],
+    "keywords": [
+      "medium",
+      "medium.com",
+      "artikel",
+      "article",
+      "blog"
+    ],
     "label": "Medium"
   },
   "wichtiges": {
-    "keywords": ["wichtig", "important", "urgent", "dringend", "notwendig", "necessary"],
+    "keywords": [
+      "wichtig",
+      "important",
+      "urgent",
+      "dringend",
+      "notwendig",
+      "necessary"
+    ],
     "label": "Wichtiges"
   },
   "chat": {
-    "keywords": ["chat", "chatbot", "messenger", "messaging", "conversation", "kommunikation"],
+    "keywords": [
+      "chat",
+      "chatbot",
+      "messenger",
+      "messaging",
+      "conversation",
+      "kommunikation"
+    ],
     "label": "Chat"
   },
   "wichtiges/arbeiten": {
-    "keywords": ["arbeiten", "arbeit", "work", "job", "task", "aufgabe", "projekt", "project", "team", "collaboration", "zusammenarbeit", "collaborate", "arbeitspaket", "work package"],
+    "keywords": [
+      "arbeiten",
+      "arbeit",
+      "work",
+      "job",
+      "task",
+      "aufgabe",
+      "projekt",
+      "project",
+      "team",
+      "collaboration",
+      "zusammenarbeit",
+      "collaborate",
+      "arbeitspaket",
+      "work package"
+    ],
     "label": "Wichtiges/arbeiten"
   },
   "registrierungen": {
-    "keywords": ["registrierung", "registration", "anmeldung", "signup", "sign up", "account creation", "account registration", "user registration", "user signup",
-      "user sign up", "user account", "user profile", "user registration confirmation", "user signup confirmation"],
+    "keywords": [
+      "registrierung",
+      "registration",
+      "anmeldung",
+      "signup",
+      "sign up",
+      "account creation",
+      "account registration",
+      "user registration",
+      "user signup",
+      "user sign up",
+      "user account",
+      "user profile",
+      "user registration confirmation",
+      "user signup confirmation"
+    ],
     "label": "Registrierungen"
   },
   "fußball": {
-    "keywords": ["fussball", "football", "soccer", "spiel", "match", "game", "liga", "league", "team", "verein", "club", "öfb", "kfv", "fussball online"],
+    "keywords": [
+      "fussball",
+      "football",
+      "soccer",
+      "spiel",
+      "match",
+      "game",
+      "liga",
+      "league",
+      "team",
+      "verein",
+      "club",
+      "öfb",
+      "kfv",
+      "fussball online"
+    ],
     "label": "Fußball"
   },
   "sonstiges": {
     "keywords": [],
     "label": "Sonstiges"
+  },
+  "category_updates": {
+    "keywords": [],
+    "label": "Category_updates"
   }
 }
