@@ -178,5 +178,25 @@
   "category_updates": {
     "keywords": [],
     "label": "Category_updates"
+  },
+  "google warning": {
+    "keywords": [],
+    "label": "Google warning"
+  },
+  "category_promotions": {
+    "keywords": [],
+    "label": "Category_promotions"
+  },
+  "category_social": {
+    "keywords": [],
+    "label": "Category_social"
+  },
+  "rechnungen": {
+    "keywords": [],
+    "label": "Rechnungen"
+  },
+  "category_personal": {
+    "keywords": [],
+    "label": "Category_personal"
   }
 }

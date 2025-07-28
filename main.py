@@ -67,8 +67,8 @@ def verarbeite_email(msg, service, regeln, gmail_labels, trainingsdaten=None):
             "keywords": [],
             "label": labelname
         }
-        speichere_regeln(regeln)
-        logge_neue_kategorie(kategorie, labelname)
+        speichere_regeln(regeln, REGELN_DATEI)
+        logge_neue_kategorie(kategorie, labelname, LOG_DATEI)
         logging.info(f"Neue Kategorie '{kategorie}' wurde zu den Regeln hinzugefügt.")
 
     # ==== Regel prüfen oder neu anlegen ====
@@ -78,8 +78,8 @@ def verarbeite_email(msg, service, regeln, gmail_labels, trainingsdaten=None):
             "keywords": [],
             "label": labelname
         }
-        speichere_regeln(regeln)
-        logge_neue_kategorie(kategorie, labelname)
+        speichere_regeln(regeln, REGELN_DATEI)
+        logge_neue_kategorie(kategorie, labelname, LOG_DATEI)
 
     # ==== Gmail Label ID holen oder erstellen ====
     label_id = get_or_create_label(service, regeln[kategorie]["label"])
@@ -91,7 +91,7 @@ def verarbeite_email(msg, service, regeln, gmail_labels, trainingsdaten=None):
     # ==== Automatische Newsletter-Abmeldung über List-Unsubscribe-Header ====
     list_unsubscribe = extract_list_unsubscribe(headers)
     if ist_newsletter and ist_unbezahlt and list_unsubscribe:
-        abmelden_via_list_unsubscribe(list_unsubscribe, subject)
+        abmelden_via_list_unsubscribe(list_unsubscribe, subject, lambda s, u: log_unsubscribe_link(s, u, UNSUBSCRIBE_LOG))
 
 
 def sammle_label_trainingsdaten(service, max_emails_per_label=50):
